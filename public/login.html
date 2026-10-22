@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Góc Học Của Bé 💕</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💗</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Quicksand:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="login-page">
+  <main class="container narrow">
+    <section class="card login-card">
+      <div class="sticker login-sticker">🐰<span>💕</span></div>
+      <h1 class="login-title" id="loginTitle">Góc nhỏ của hai đứa mình</h1>
+      <p class="hint" id="loginSub">Nhập mật khẩu để vào nha 🔐</p>
+      <form id="loginForm" class="login-form">
+        <input type="password" id="password" class="pin-input" placeholder="Mật khẩu" autocomplete="current-password" required autofocus>
+        <button class="btn primary big" type="submit" id="loginBtn">Vào thôi 💗</button>
+      </form>
+      <p class="login-error" id="loginError" role="alert"></p>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var next = params.get('next') || '/';
+      // Chỉ cho quay về trang trong web này
+      if (next.charAt(0) !== '/' || next.indexOf('//') === 0 || next.indexOf('/\\') === 0) next = '/';
+      if (params.get('need') === 'admin') {
+        document.getElementById('loginTitle').textContent = 'Khu vực của anh 💌';
+        document.getElementById('loginSub').textContent = 'Trang này cần mật khẩu quản trị';
+      }
+
+      var form = document.getElementById('loginForm');
+      var btn = document.getElementById('loginBtn');
+      var error = document.getElementById('loginError');
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        btn.disabled = true;
+        error.textContent = '';
+        fetch('/api/login', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ password: document.getElementById('password').value })
+        })
+          .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+          .then(function (r) {
+            if (!r.ok) throw new Error(r.data && r.data.error || 'Có lỗi xảy ra');
+            var wantsAdmin = /^\/admin(\.html)?([?#]|$)/.test(next);
+            location.replace(wantsAdmin && r.data.role !== 'admin' ? '/' : next);
+          })
+          .catch(function (err) {
+            error.textContent = err.message === 'Failed to fetch' ? 'Không kết nối được server 📶' : err.message;
+            document.getElementById('password').select();
+          })
+          .finally(function () { btn.disabled = false; });
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "goc-cua-be",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "db:local": "wrangler d1 migrations apply DB --local",
+    "db:remote": "wrangler d1 migrations apply DB --remote",
+    "dev": "wrangler dev",
+    "deploy": "npm run db:remote && wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

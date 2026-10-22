@@ -1,0 +1,15 @@
+name = "goc-cua-be"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+# Frontend tĩnh trong public/. Worker chạy TRƯỚC mọi request để chặn người chưa đăng nhập.
+[assets]
+directory = "./public"
+binding = "ASSETS"
+run_worker_first = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "goc-hoc-db"
+database_id = "037480f8-5177-4b1e-ab96-cfb3d323b117"
+migrations_dir = "migrations"

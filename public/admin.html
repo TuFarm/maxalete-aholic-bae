@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Hậu Trường Của Anh 💌</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💌</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Quicksand:wght@400;500;600;700&subset=vietnamese&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="admin">
+  <header class="topbar">
+    <a class="brand" href="./" title="Xem trang của em">
+      <span class="brand-heart">💌</span>
+      <span class="brand-text">Hậu trường của anh</span>
+    </a>
+    <nav class="nav">
+      <a href="./" target="_blank" rel="noopener">👀 Xem trang của em</a>
+      <button class="btn tiny" id="logoutBtn">🚪 Đăng xuất</button>
+    </nav>
+  </header>
+
+  <main class="container narrow">
+    <div id="adminApp">
+      <div class="admin-tabs" role="tablist">
+        <button class="phase-tab active" data-tab="compose">✉️ Viết thư</button>
+        <button class="phase-tab" data-tab="sent">📬 Đã gửi</button>
+        <button class="phase-tab" data-tab="settings">⚙️ Cài đặt</button>
+        <button class="phase-tab" data-tab="content">💬 Nội dung</button>
+      </div>
+
+      <!-- Viết thư -->
+      <section class="card tab-panel" data-panel="compose">
+        <div class="card-head"><h2>✉️ Viết lời chúc</h2><span class="chip soft" id="charCount">0/2000</span></div>
+        <form id="composeForm">
+          <textarea id="content" class="letter-input" maxlength="2000" rows="7" placeholder="Viết gì đó thật ngọt ngào cho em…" required></textarea>
+          <div class="emoji-pick" id="emojiPick"></div>
+          <div class="pin-row">
+            <label>🔑 Mã mở thư (bỏ trống = không khoá)
+              <span class="with-btn">
+                <input id="letterPin" maxlength="20" autocomplete="off">
+                <button type="button" class="btn ghost" id="newPin" title="Tạo mã mới">🎲</button>
+              </span>
+            </label>
+            <label>💡 Gợi ý cho em (tuỳ chọn)
+              <input id="pinHintInput" maxlength="100" placeholder="VD: ngày mình quen nhau (ddmm)">
+            </label>
+          </div>
+          <div class="schedule">
+            <label class="check"><input type="radio" name="when" value="now" checked> Gửi ngay</label>
+            <label class="check"><input type="radio" name="when" value="later"> Hẹn giờ gửi</label>
+            <input type="datetime-local" id="showAt" disabled>
+          </div>
+          <div class="modal-actions">
+            <button class="btn primary big" type="submit">Gửi thư 💌</button>
+          </div>
+        </form>
+      </section>
+
+      <!-- Đã gửi -->
+      <section class="card tab-panel" data-panel="sent" hidden>
+        <div class="card-head"><h2>📬 Thư đã gửi</h2><button class="btn tiny" id="reloadSent">↻ Làm mới</button></div>
+        <div id="sentList" class="sent-list"></div>
+      </section>
+
+      <!-- Cài đặt -->
+      <section class="card tab-panel" data-panel="settings" hidden>
+        <div class="card-head"><h2>⚙️ Cài đặt cho em</h2></div>
+        <form id="adminSettings" class="settings admin-settings"></form>
+      </section>
+
+      <!-- Nội dung -->
+      <section class="card tab-panel" data-panel="content" hidden>
+        <div class="card-head"><h2>💬 Nội dung trên trang</h2></div>
+        <p class="hint">Mỗi dòng là một mục. Dùng <b>{her}</b> và <b>{his}</b> để tự thay bằng tên hai đứa.</p>
+        <div id="contentEditors"></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <script src="js/utils.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Copy thành .dev.vars khi chạy local. Khi deploy dùng: npx wrangler secret put <TÊN>
+# Mật khẩu của anh: vào được /admin và cả trang của em
+ADMIN_PASSWORD=doi-mat-khau-nay
+# Mật khẩu của em: vào trang học (nên dài từ 8 ký tự)
+VIEWER_PASSWORD=doi-mat-khau-nay-nua
