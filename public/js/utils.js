@@ -31,6 +31,7 @@ const DEFAULT_SETTINGS = {
   eyeRest: true,
   eyeEvery: 20,
   sound: true,
+  chatHello: 'Chưa có tin nhắn nào. Viết dòng đầu tiên nha ✏️',
 };
 
 const Settings = {

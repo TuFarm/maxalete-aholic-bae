@@ -14,6 +14,7 @@ public/              # Frontend (HTML/CSS/JS thuần)
   login.html         # Trang đăng nhập dùng chung
   js/api.js          # gọi backend (cookie đăng nhập)
   js/mailbox.js      # hộp thư, 60 giây kiểm tra thư mới một lần
+  js/chat.js         # trò chuyện + phiếu hẹn (ngăn kéo bên phải / tab Trò chuyện ở /admin)
   js/admin.js        # gửi thư, xem đã đọc chưa, sửa cài đặt và nội dung
   ...
 src/index.js         # Backend Worker: API /api/*

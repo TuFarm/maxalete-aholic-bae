@@ -25,6 +25,9 @@ const SETTING_FIELDS = [
     ['eyeRest', 'Bật nhắc nghỉ mắt', 'checkbox'],
     ['sound', 'Phát chuông khi nhắc', 'checkbox'],
   ] },
+  { group: '💬 Trò chuyện', fields: [
+    ['chatHello', 'Dòng hiện khi chưa có tin nhắn', 'text', 120],
+  ] },
 ];
 
 const CONTENT_KINDS = [
@@ -61,6 +64,7 @@ const Admin = {
   async loadAll() {
     try {
       const { settings, items } = await this.request('/api/bootstrap');
+      Settings.apply(settings);
       this.renderSettings(settings);
       this.renderContent(items);
     } catch (err) { toast(err.message); }
@@ -225,16 +229,29 @@ const Admin = {
     });
   },
 
+  // ----- Trò chuyện -----
+  initChat() {
+    const panel = document.querySelector('[data-panel="chat"]');
+    const badge = $('chatBadge');
+    Chat.mount($('adminChat'), {
+      mode: 'panel',
+      isVisible: () => !panel.hidden,
+      onUnread: (n) => { badge.hidden = !n; badge.textContent = n > 9 ? '9+' : n; },
+    });
+  },
+
   init() {
     document.querySelectorAll('.admin-tabs .phase-tab').forEach((tab) => tab.addEventListener('click', () => {
       document.querySelectorAll('.admin-tabs .phase-tab').forEach((t) => t.classList.toggle('active', t === tab));
       document.querySelectorAll('.tab-panel').forEach((p) => { p.hidden = p.dataset.panel !== tab.dataset.tab; });
       if (tab.dataset.tab === 'sent') this.loadSent();
+      if (tab.dataset.tab === 'chat') Chat.shown();
     }));
     $('logoutBtn').addEventListener('click', () => this.logout());
     $('reloadSent').addEventListener('click', () => this.loadSent());
     this.initCompose();
     this.initSettings();
+    this.initChat();
     this.loadAll();
   },
 };

@@ -19,6 +19,7 @@ const DEFAULT_SETTINGS = {
   eyeRest: true,
   eyeEvery: 20,
   sound: true,
+  chatHello: 'Chưa có tin nhắn nào. Viết dòng đầu tiên nha ✏️',
 };
 
 // Kiểu và giới hạn hợp lệ của từng trường cài đặt
@@ -37,6 +38,7 @@ const SETTINGS_SCHEMA = {
   eyeRest: { type: 'bool' },
   eyeEvery: { type: 'int', min: 10, max: 60 },
   sound: { type: 'bool' },
+  chatHello: { type: 'string', max: 120 },
 };
 
 const ITEM_KINDS = ['sweet', 'note', 'preset'];
@@ -249,6 +251,105 @@ async function unlockMessage(request, env, id) {
   return getPublicMessage(env, id);
 }
 
+// ---------- Trò chuyện & phiếu hẹn ----------
+
+const CHAT = { maxText: 1000, maxPlace: 80, maxNote: 200, page: 40 };
+const CHAT_COLS = 'id, sender, kind, body, place, at, status, ref_id AS refId, created_at AS createdAt';
+const ANSWERS = ['accepted', 'declined'];
+
+const whoOf = (session) => (session.role === 'admin' ? 'anh' : 'em');
+const peerOf = (who) => (who === 'anh' ? 'em' : 'anh');
+
+async function chatState(env, who) {
+  const now = Date.now();
+  const [seen, upcoming, unread] = await Promise.all([
+    env.DB.prepare('SELECT who, last_id AS lastId FROM chat_seen').all(),
+    env.DB.prepare(`SELECT ${CHAT_COLS} FROM chats WHERE kind = 'date' AND status = 'accepted' AND at > ? ORDER BY at LIMIT 5`)
+      .bind(now).all(),
+    env.DB.prepare(`SELECT count(*) AS n FROM chats WHERE sender = ? AND kind != 'reply'
+      AND id > (SELECT last_id FROM chat_seen WHERE who = ?)`).bind(peerOf(who), who).first(),
+  ]);
+  const cursor = Object.fromEntries(seen.results.map((r) => [r.who, r.lastId]));
+  return { me: who, seen: cursor[who] || 0, peerSeen: cursor[peerOf(who)] || 0, unread: unread.n, upcoming: upcoming.results, now };
+}
+
+// after = poll tin mới; before = tải tin cũ hơn; không có gì = trang mới nhất.
+// Trạng thái phiếu nằm sẵn trên dòng phiếu, nên trang cũ tải lại vẫn đúng.
+async function listChats(env, url, who) {
+  const after = Number(url.searchParams.get('after'));
+  const before = Number(url.searchParams.get('before'));
+  let chats = [];
+  let more = false;
+  if (after > 0) {
+    ({ results: chats } = await env.DB.prepare(`SELECT ${CHAT_COLS} FROM chats WHERE id > ? ORDER BY id LIMIT 200`)
+      .bind(after).all());
+  } else {
+    const stmt = before > 0
+      ? env.DB.prepare(`SELECT ${CHAT_COLS} FROM chats WHERE id < ? ORDER BY id DESC LIMIT ?`).bind(before, CHAT.page + 1)
+      : env.DB.prepare(`SELECT ${CHAT_COLS} FROM chats ORDER BY id DESC LIMIT ?`).bind(CHAT.page + 1);
+    const { results } = await stmt.all();
+    more = results.length > CHAT.page;
+    chats = results.slice(0, CHAT.page).reverse();
+  }
+  return { chats, more, ...await chatState(env, who) };
+}
+
+function cleanText(value, max, label) {
+  const s = String(value ?? '').trim();
+  if (s.length > max) throw new HttpError(400, `${label} dài tối đa ${max} ký tự`);
+  return s;
+}
+
+async function createChat(env, who, body) {
+  const now = Date.now();
+  if (body?.kind === 'date') {
+    const place = cleanText(body.place, CHAT.maxPlace, 'Chỗ hẹn');
+    if (!place) throw new HttpError(400, 'Phiếu hẹn cần ghi đi đâu nè');
+    const note = cleanText(body.note, CHAT.maxNote, 'Ghi chú');
+    const at = Number(body.at);
+    if (!Number.isFinite(at)) throw new HttpError(400, 'Chọn giờ hẹn nha');
+    if (at < now - 60000) throw new HttpError(400, 'Giờ hẹn phải ở tương lai nha');
+    const refId = body.refId ? Number(body.refId) : null;
+    const stmts = [];
+    if (refId) {
+      // Đổi giờ: phiếu cũ phải còn chờ trả lời
+      const old = await env.DB.prepare("SELECT status FROM chats WHERE id = ? AND kind = 'date'").bind(refId).first();
+      if (!old) throw new HttpError(404, 'Không tìm thấy phiếu cũ');
+      if (old.status !== 'pending') throw new HttpError(409, 'Phiếu này đã được trả lời rồi');
+      stmts.push(
+        env.DB.prepare("UPDATE chats SET status = 'rescheduled' WHERE id = ?").bind(refId),
+        env.DB.prepare("INSERT INTO chats (sender, kind, body, ref_id, created_at) VALUES (?, 'reply', 'rescheduled', ?, ?)")
+          .bind(who, refId, now),
+      );
+    }
+    stmts.push(env.DB.prepare(
+      `INSERT INTO chats (sender, kind, body, place, at, status, ref_id, created_at) VALUES (?, 'date', ?, ?, ?, 'pending', ?, ?) RETURNING ${CHAT_COLS}`,
+    ).bind(who, note, place, Math.round(at), refId, now));
+    const results = await env.DB.batch(stmts);
+    return results.at(-1).results[0];
+  }
+  const text = cleanText(body?.body, CHAT.maxText, 'Tin nhắn');
+  if (!text) throw new HttpError(400, 'Tin nhắn trống nè');
+  return env.DB.prepare(`INSERT INTO chats (sender, kind, body, created_at) VALUES (?, 'text', ?, ?) RETURNING ${CHAT_COLS}`)
+    .bind(who, text, now).first();
+}
+
+async function answerDate(env, who, id, answer) {
+  if (!ANSWERS.includes(answer)) throw new HttpError(400, 'Câu trả lời không hợp lệ');
+  const card = await env.DB.prepare("SELECT sender, status, at FROM chats WHERE id = ? AND kind = 'date'").bind(id).first();
+  if (!card) throw new HttpError(404, 'Không tìm thấy phiếu hẹn');
+  // Lỗi nghiệp vụ dùng 409, không dùng 403 (trang admin coi 403 là hết phiên)
+  if (card.sender === who) throw new HttpError(409, 'Phiếu của mình thì chờ người kia trả lời nha');
+  if (card.status !== 'pending') throw new HttpError(409, 'Phiếu này đã được trả lời rồi');
+  if (card.at < Date.now()) throw new HttpError(409, 'Giờ hẹn đã qua mất rồi');
+  const now = Date.now();
+  await env.DB.batch([
+    env.DB.prepare("UPDATE chats SET status = ? WHERE id = ? AND status = 'pending'").bind(answer, id),
+    env.DB.prepare("INSERT INTO chats (sender, kind, body, ref_id, created_at) VALUES (?, 'reply', ?, ?, ?)")
+      .bind(who, answer, id, now),
+  ]);
+}
+
 // ---------- API ----------
 
 async function handleApi(request, env, url, session) {
@@ -307,6 +408,31 @@ async function handleApi(request, env, url, session) {
     // Thư còn khoá thì chưa tính là đã đọc
     await env.DB.prepare(`UPDATE messages SET read_at = ? WHERE id = ? AND read_at IS NULL AND show_at <= ? AND NOT ${LOCKED}`)
       .bind(Date.now(), Number(m[1]), Date.now()).run();
+    return json({ ok: true });
+  }
+
+  // ----- Trò chuyện (cả hai cùng dùng; người gửi lấy từ phiên) -----
+  if (pathname === '/api/chat' && method === 'GET') {
+    requireRole(session, 'viewer');
+    return json(await listChats(env, url, whoOf(session)));
+  }
+  if (pathname === '/api/chat' && method === 'POST') {
+    requireRole(session, 'viewer');
+    const chat = await createChat(env, whoOf(session), await readJson(request));
+    return json({ chat }, 201);
+  }
+  if ((m = pathname.match(/^\/api\/chat\/(\d+)\/answer$/)) && method === 'POST') {
+    requireRole(session, 'viewer');
+    await answerDate(env, whoOf(session), Number(m[1]), (await readJson(request))?.answer);
+    return json({ ok: true });
+  }
+  if (pathname === '/api/chat/seen' && method === 'POST') {
+    requireRole(session, 'viewer');
+    const lastId = Number((await readJson(request))?.lastId);
+    if (!Number.isInteger(lastId) || lastId < 0) throw new HttpError(400, 'lastId không hợp lệ');
+    // Chỉ tiến lên, không lùi; không thay đổi thì không tốn lượt ghi thật
+    await env.DB.prepare('UPDATE chat_seen SET last_id = ? WHERE who = ? AND last_id < ?')
+      .bind(lastId, whoOf(session), lastId).run();
     return json({ ok: true });
   }
 

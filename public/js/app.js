@@ -133,7 +133,7 @@ async function syncServer() {
     Api.online = true;
     Settings.apply(settings);
     Content.apply(items);
-    if (firstTime) Mailbox.init();
+    if (firstTime) { Mailbox.init(); ChatDrawer.init(); }
   } catch {
     if (!Api.online) Mailbox.render();
   }

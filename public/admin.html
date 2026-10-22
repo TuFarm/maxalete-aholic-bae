@@ -28,6 +28,7 @@
       <div class="admin-tabs" role="tablist">
         <button class="phase-tab active" data-tab="compose">✉️ Viết thư</button>
         <button class="phase-tab" data-tab="sent">📬 Đã gửi</button>
+        <button class="phase-tab" data-tab="chat">💬 Trò chuyện<span class="tab-badge" id="chatBadge" hidden></span></button>
         <button class="phase-tab" data-tab="settings">⚙️ Cài đặt</button>
         <button class="phase-tab" data-tab="content">💬 Nội dung</button>
       </div>
@@ -66,6 +67,11 @@
         <div id="sentList" class="sent-list"></div>
       </section>
 
+      <!-- Trò chuyện -->
+      <section class="card tab-panel chat-panel" data-panel="chat" hidden>
+        <div id="adminChat"></div>
+      </section>
+
       <!-- Cài đặt -->
       <section class="card tab-panel" data-panel="settings" hidden>
         <div class="card-head"><h2>⚙️ Cài đặt cho em</h2></div>
@@ -83,6 +89,7 @@
 
   <div class="toasts" id="toasts" aria-live="polite"></div>
   <script src="js/utils.js"></script>
+  <script src="js/chat.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>

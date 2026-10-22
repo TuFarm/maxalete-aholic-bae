@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-22T00:00:00Z",
+  "title": "Design System: Góc Học Của Bé",
+  "extensions": {
+    "colorMeta": {
+      "bubblegum": { "role": "primary", "displayName": "Bubblegum Pink", "canonical": "#ff7aa2", "tonalRamp": ["#3d0a1c", "#6b1533", "#9c214c", "#cf3468", "#ff7aa2", "#ff9fbc", "#ffc6d7", "#ffeef3"] },
+      "raspberry": { "role": "primary", "displayName": "Raspberry", "canonical": "#e84d7d", "tonalRamp": ["#33071a", "#5e0f2f", "#8c1945", "#bc2a5e", "#e84d7d", "#f07da0", "#f7b0c6", "#fde6ee"] },
+      "lilac": { "role": "secondary", "displayName": "Lilac", "canonical": "#c8b6ff", "tonalRamp": ["#1e1240", "#36246e", "#51399e", "#6f53cf", "#9b84f5", "#c8b6ff", "#e0d5ff", "#f5f1ff"] },
+      "lilac-ink": { "role": "secondary", "displayName": "Lilac Ink", "canonical": "#6a4cc2" },
+      "break-mint": { "role": "tertiary", "displayName": "Break Mint", "canonical": "#6dd3a8", "tonalRamp": ["#082a1c", "#104a33", "#1a6c4c", "#2b9268", "#4cc493", "#6dd3a8", "#b4ecd4", "#eafaf2"] },
+      "rest-violet": { "role": "tertiary", "displayName": "Rest Violet", "canonical": "#9b84f5" },
+      "page": { "role": "neutral", "displayName": "Page Blush", "canonical": "#fff7fa" },
+      "blush": { "role": "neutral", "displayName": "Blush", "canonical": "#ffe3ec" },
+      "petal": { "role": "neutral", "displayName": "Petal", "canonical": "#fff4f7" },
+      "plum-ink": { "role": "neutral", "displayName": "Plum Ink", "canonical": "#5b3a55", "tonalRamp": ["#1f1220", "#3a2338", "#5b3a55", "#7a5873", "#9a7a93", "#bba0b5", "#dccbd8", "#f5eef3"] },
+      "dusty-plum": { "role": "neutral", "displayName": "Dusty Plum", "canonical": "#9a7a93" },
+      "rose-rule": { "role": "neutral", "displayName": "Rose Rule", "canonical": "#ffd0de" },
+      "ruled-blue": { "role": "neutral", "displayName": "Ruled Blue", "canonical": "#d9ecff" },
+      "margin-pink": { "role": "neutral", "displayName": "Margin Pink", "canonical": "#ffb3c8" },
+      "sticky-cream": { "role": "neutral", "displayName": "Sticky Cream", "canonical": "#fffbe6" },
+      "sticky-edge": { "role": "neutral", "displayName": "Sticky Edge", "canonical": "#ffeaa0" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero greeting title." },
+      "timer": { "displayName": "Timer", "purpose": "Pomodoro countdown and stat numbers." },
+      "headline": { "displayName": "Headline", "purpose": "Card and modal headings, in raspberry." },
+      "handnote": { "displayName": "Handnote", "purpose": "Anything written by him: letters, notes, greetings, reminder times." },
+      "body": { "displayName": "Body", "purpose": "Paragraphs and modal copy." },
+      "label": { "displayName": "Label", "purpose": "Nav, chips, form labels, hints." }
+    },
+    "shadows": [
+      { "name": "card-glow", "value": "0 10px 30px -12px rgba(232, 77, 125, .35)", "purpose": "Every card, banner, admin tab track and toast." },
+      { "name": "button-lift", "value": "0 6px 16px -6px #e84d7d", "purpose": "Primary buttons; hover deepens to 0 8px 22px -6px." },
+      { "name": "tab-pill", "value": "0 3px 10px -4px rgba(232, 77, 125, .5)", "purpose": "Active segment in tab tracks." },
+      { "name": "paper-drop", "value": "0 6px 14px -8px rgba(0, 0, 0, .3)", "purpose": "Sticky notes and opened letters only." },
+      { "name": "modal-bloom", "value": "0 30px 60px -20px rgba(232, 77, 125, .5)", "purpose": "Dialogs." },
+      { "name": "pulse-glow", "value": "0 0 0 6px rgba(255, 122, 162, .15)", "purpose": "Animated attention ring: studying banner, unread letters." }
+    ],
+    "motion": [
+      { "name": "spring-pop", "value": "cubic-bezier(.3, 1.6, .5, 1)", "purpose": "Modal pop-in and water filling; playful overshoot." },
+      { "name": "press-squish", "value": "transform .15s; scale(.95)", "purpose": "Button active state." },
+      { "name": "hover-lift", "value": ".2s; translateY(-3px to -4px) rotate(-.5deg to -1deg)", "purpose": "Cards, letters, games on hover." },
+      { "name": "heartbeat", "value": "1.4s ease-in-out infinite", "purpose": "Brand heart and sticker accent." },
+      { "name": "reduced-motion", "value": "animation/transition: none !important", "purpose": "Global kill-switch under prefers-reduced-motion." }
+    ],
+    "breakpoints": [
+      { "name": "stack", "value": "860px" },
+      { "name": "phone", "value": "600px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action pill with candy gradient and squish on press.",
+      "html": "<button class=\"ds-btn-primary\">Bắt đầu học</button>",
+      "css": ".ds-btn-primary { border: 0; cursor: pointer; border-radius: 999px; padding: 10px 18px; font-family: Quicksand, system-ui, sans-serif; font-weight: 700; color: #fff; background: linear-gradient(135deg, #ff7aa2, #e84d7d); box-shadow: 0 6px 16px -6px #e84d7d; transition: transform .15s, box-shadow .2s; } .ds-btn-primary:hover { box-shadow: 0 8px 22px -6px #e84d7d; transform: translateY(-1px); } .ds-btn-primary:active { transform: scale(.95); } .ds-btn-primary:focus-visible { outline: 3px solid #c8b6ff; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary pill in blush.",
+      "html": "<button class=\"ds-btn-ghost\">Bỏ qua</button>",
+      "css": ".ds-btn-ghost { border: 0; cursor: pointer; border-radius: 999px; padding: 10px 18px; font-family: Quicksand, system-ui, sans-serif; font-weight: 700; background: #ffe3ec; color: #e84d7d; transition: background .2s, transform .15s; } .ds-btn-ghost:hover { background: #ffd3e1; } .ds-btn-ghost:active { transform: scale(.95); } .ds-btn-ghost:focus-visible { outline: 3px solid #c8b6ff; outline-offset: 2px; }"
+    },
+    {
+      "name": "Tiny Button",
+      "kind": "button",
+      "refersTo": "button-tiny",
+      "description": "Small lilac utility action.",
+      "html": "<button class=\"ds-btn-tiny\">+ 1 cốc</button>",
+      "css": ".ds-btn-tiny { border: 0; cursor: pointer; border-radius: 999px; padding: 6px 12px; font-family: Quicksand, system-ui, sans-serif; font-size: 13px; font-weight: 700; background: #efe9ff; color: #6a4cc2; transition: background .2s; } .ds-btn-tiny:hover { background: #e0d5ff; } .ds-btn-tiny:focus-visible { outline: 3px solid #c8b6ff; outline-offset: 2px; }"
+    },
+    {
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Filled and soft status pills.",
+      "html": "<span class=\"ds-chip\">Tập trung</span> <span class=\"ds-chip ds-chip-soft\">Phiên 2/4</span>",
+      "css": ".ds-chip { display: inline-block; background: #ff7aa2; color: #fff; font-family: Quicksand, system-ui, sans-serif; font-weight: 700; font-size: 13px; padding: 5px 12px; border-radius: 999px; } .ds-chip-soft { background: #ffe3ec; color: #e84d7d; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Rounded field with rose stroke; pink on focus.",
+      "html": "<input class=\"ds-input\" placeholder=\"Dán link YouTube…\">",
+      "css": ".ds-input { border: 2px solid #ffd0de; background: #fff; border-radius: 14px; padding: 10px 14px; outline: none; font-family: Quicksand, system-ui, sans-serif; font-size: 15px; color: #5b3a55; transition: border-color .2s; } .ds-input:focus, .ds-input:focus-visible { border-color: #ff7aa2; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Translucent white card with paper edge and pink glow.",
+      "html": "<section class=\"ds-card\"><h2 class=\"ds-card-title\">🌸 Hôm nay của em</h2><p class=\"ds-card-hint\">Mỗi cốc nước là một lời thương nha.</p></section>",
+      "css": ".ds-card { background: #ffffffee; border-radius: 22px; box-shadow: 0 10px 30px -12px rgba(232, 77, 125, .35); padding: 22px; border: 2px solid #fff; font-family: Quicksand, system-ui, sans-serif; color: #5b3a55; max-width: 360px; } .ds-card-title { font-family: 'Patrick Hand', Quicksand, cursive; font-weight: 400; font-size: 28px; color: #e84d7d; margin: 0 0 8px; } .ds-card-hint { font-size: 13px; color: #9a7a93; line-height: 1.5; margin: 0; }"
+    },
+    {
+      "name": "Top Bar Navigation",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Sticky blurred bar with beating heart brand and pill links.",
+      "html": "<nav class=\"ds-topbar\"><a class=\"ds-brand\" href=\"#\"><span>💗</span> Góc Học Của Bé</a><div class=\"ds-nav\"><a href=\"#\">Học</a><a href=\"#\">Nhạc</a><a href=\"#\">Hộp thư</a></div></nav>",
+      "css": ".ds-topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 24px; background: rgba(255, 247, 250, .8); backdrop-filter: blur(10px); border-bottom: 2px dashed #ffd0de; font-family: Quicksand, system-ui, sans-serif; } .ds-brand { display: flex; gap: 8px; align-items: center; text-decoration: none; color: #e84d7d; font-family: 'Patrick Hand', Quicksand, cursive; font-size: 26px; } .ds-nav { display: flex; gap: 4px; } .ds-nav a { text-decoration: none; color: #5b3a55; font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 999px; transition: background .2s; } .ds-nav a:hover, .ds-nav a:focus-visible { background: #ffe3ec; outline: none; }"
+    },
+    {
+      "name": "Letter Card",
+      "kind": "custom",
+      "refersTo": "letter-card",
+      "description": "Sticky-note letter tile; unread state glows pink with a dot.",
+      "html": "<button class=\"ds-letter\"><span class=\"ds-letter-emoji\">💌</span><span class=\"ds-letter-body\"><b>Anh nhớ em nhiều lắm…</b><small>Hôm qua · 21:30</small></span></button> <button class=\"ds-letter ds-letter-unread\"><span class=\"ds-letter-emoji\">🔒</span><span class=\"ds-letter-body\"><b>Thư mới cho em</b><small>Vừa xong</small></span></button>",
+      "css": ".ds-letter { display: inline-flex; align-items: center; gap: 12px; text-align: left; cursor: pointer; background: #fffbe6; border: 2px solid #ffeaa0; border-radius: 16px; padding: 12px 14px; position: relative; font-family: Quicksand, system-ui, sans-serif; color: #5b3a55; transition: transform .2s; min-width: 240px; } .ds-letter:hover, .ds-letter:focus-visible { transform: translateY(-3px) rotate(-.5deg); outline: none; } .ds-letter-emoji { font-size: 32px; } .ds-letter-body { display: flex; flex-direction: column; gap: 4px; } .ds-letter-body small { color: #9a7a93; font-size: 12px; } .ds-letter-unread { background: #ffe3ec; border-color: #ff7aa2; box-shadow: 0 0 0 6px rgba(255, 122, 162, .15); } .ds-letter-unread::after { content: ''; position: absolute; top: 10px; right: 10px; width: 10px; height: 10px; border-radius: 50%; background: #e84d7d; }"
+    },
+    {
+      "name": "Sticky Note",
+      "kind": "custom",
+      "refersTo": "handnote",
+      "description": "Tilted cream paper note in his handwriting.",
+      "html": "<p class=\"ds-note\">Học xong anh dẫn em đi ăn kem nha 🍦</p>",
+      "css": ".ds-note { font-family: 'Patrick Hand', Quicksand, cursive; font-size: 24px; color: #5b3a55; background: #fffbe6; border-radius: 6px; padding: 16px 18px; max-width: 360px; transform: rotate(-1.5deg); box-shadow: 0 6px 14px -8px rgba(0, 0, 0, .3); margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Love-Note Notebook",
+    "overview": "The whole interface is a student's notebook that someone who loves her has decorated. Pages are ruled school paper with a pink margin line. Notes are cream sticky paper tilted a degree or two. A strip of lilac washi tape holds the hero card down. Emoji act as stickers. Headings, the timer and anything \"said\" by him are in a handwritten face (Patrick Hand), and the working UI stays in a round, legible sans (Quicksand). The page should feel like his handwriting is in the margins of her studies.\n\nDensity is relaxed and card-based. Generous rounded white cards float on a pale pink page washed with soft radial blooms of blush, lilac and baby blue. Interaction is soft and bouncy like candy: buttons squish on press, cards lift and tilt slightly on hover, popups pop in with an overshoot. Hearts float up the background, and the brand heart beats. Every animation stops under `prefers-reduced-motion`.\n\nThe look is cute but grown-up: a university student's notebook, not a children's app. It must never read as a cold office tool, with grey, square, dense dashboard chrome.",
+    "keyCharacteristics": [
+      "Ruled-paper, washi-tape and sticky-note materials taken from real stationery",
+      "Handwritten display type over a round, friendly sans for the working UI",
+      "Pink-led candy pastels, with lilac and mint reserved for meaning",
+      "Pill and very round shapes everywhere, softened further by dashed \"stitched\" borders",
+      "Squishy, bouncy micro-interactions that all switch off under reduced motion"
+    ],
+    "rules": [
+      { "name": "The Plum Ink Rule", "body": "Text is never pure black or grey. Body text is plum-ink, secondary text is dusty-plum, and emphasis is raspberry.", "section": "colors" },
+      { "name": "The Phase Color Rule", "body": "Mint and violet mean break time and nothing else. Don't use them as decoration elsewhere, or they stop telling her where she is in the cycle.", "section": "colors" },
+      { "name": "The Handwriting Is His Rule", "body": "Patrick Hand is for headings and personal or affectionate words. Controls, form fields, data labels and settings stay in Quicksand. The admin content editor deliberately switches the lined textarea back to Quicksand 14px.", "section": "typography" },
+      { "name": "The Pink Shadow Rule", "body": "UI shadows are tinted raspberry. Only paper objects (notes, letters) cast neutral shadows, because they are \"real\" paper stuck onto the page.", "section": "elevation" },
+      { "name": "The Stationery Tilt Rule", "body": "Only paper objects (notes, letters, tape) rotate at rest, and only by 3° or less. Controls never rotate at rest. They may tilt on hover as a playful response.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do write anything personal (letters, greetings, reminders, sweet notes) in Patrick Hand, and keep controls in Quicksand.",
+      "Do build new surfaces from stationery: ruled paper, sticky-cream notes, washi tape, dashed stitched borders, emoji stickers.",
+      "Do keep every interactive element a pill or a very round shape, with the squish (scale .95) on press and a lift or tilt on hover.",
+      "Do tint shadows raspberry, and keep neutral drop shadows for paper objects only.",
+      "Do dim and lock playful areas while she studies (`body.is-studying`), as the games corner does now.",
+      "Do keep the `prefers-reduced-motion` kill-switch covering every new animation."
+    ],
+    "donts": [
+      "Don't let it look like an office or SaaS dashboard: no grey palettes, square corners, dense tables or cold neutral chrome.",
+      "Don't make it childish. It's a university student's notebook, so keep type sizes, density and copy grown-up rather than toy-like.",
+      "Don't use pure black or grey text. Use plum-ink and dusty-plum.",
+      "Don't use break mint or rest violet for decoration. They mean break phases.",
+      "Don't add competing motion near the timer while she studies. One gentle pulse is the ceiling."
+    ]
+  }
+}
