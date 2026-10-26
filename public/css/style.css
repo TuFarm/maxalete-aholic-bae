@@ -251,6 +251,13 @@ body.is-studying .games .card-head::after { content: "🔒 Học xong rồi chơ
   box-shadow: 0 6px 14px -8px rgba(0, 0, 0, .3);
 }
 
+.catch-game { text-align: center; }
+.catch-hud { display: flex; justify-content: space-between; gap: 8px; font-weight: 700; color: var(--pink-deep); margin-bottom: 8px; font-variant-numeric: tabular-nums; }
+.catch-game canvas {
+  display: block; width: min(100%, 360px, 40vh); height: auto; aspect-ratio: 360 / 420; margin: 0 auto; border-radius: 18px; touch-action: none; cursor: grab;
+  background: linear-gradient(180deg, var(--lav-soft), var(--pink-pale)); border: 2px dashed var(--line);
+}
+
 .footer { text-align: center; color: var(--ink-soft); font-family: var(--font-hand); font-size: 20px; padding: 30px 0 10px; }
 
 /* ---------- Modal ---------- */
