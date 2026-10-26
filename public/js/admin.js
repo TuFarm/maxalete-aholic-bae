@@ -62,9 +62,15 @@ const Admin = {
   },
 
   async loadAll() {
+    // Trang này chỉnh cài đặt của em (cài đặt của anh nằm ở nút ⚙️ trên trang học)
     try {
-      const { settings, items } = await this.request('/api/bootstrap');
-      Settings.apply(settings);
+      const [{ settings }, { items }] = await Promise.all([
+        this.request('/api/admin/settings/em'),
+        this.request('/api/admin/content'),
+      ]);
+      // Chỉ lấy tên gọi chung (cho khung chat), không ghi đè bộ cài đặt riêng của anh trong máy
+      const { herName, hisName, chatHello } = settings;
+      Object.assign(Settings.data, { herName, hisName, chatHello });
       this.renderSettings(settings);
       this.renderContent(items);
     } catch (err) { toast(err.message); }
@@ -191,7 +197,7 @@ const Admin = {
         patch[input.name] = input.type === 'checkbox' ? input.checked : input.type === 'number' ? Number(input.value) : input.value.trim();
       }
       try {
-        const { settings } = await this.request('/api/settings', { method: 'PUT', body: patch });
+        const { settings } = await this.request('/api/admin/settings/em', { method: 'PUT', body: patch });
         this.renderSettings(settings);
         toast('💾 Đã lưu! Trang của em sẽ cập nhật trong vài phút (hoặc khi em mở lại tab)');
       } catch (err) { toast(err.message, 6000); }

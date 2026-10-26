@@ -602,7 +602,7 @@ const ChatDrawer = {
   },
 
   label(n) {
-    const peer = Chat.name('anh');
+    const peer = Me.peerName;
     this.launcher.setAttribute('aria-label', n ? `Nhắn với ${peer}, ${n} tin chưa đọc` : `Nhắn với ${peer}`);
     const was = this.badge.hidden ? 0 : Number(this.badge.dataset.n || 0);
     this.badge.hidden = !n;

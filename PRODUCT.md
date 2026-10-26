@@ -9,7 +9,7 @@ web
 ## Users
 
 - **Em (primary):** a university student who studies on her laptop. She keeps the page open in a tab beside her study materials for long sessions, often all day. Mobile use is secondary: on phones, reminders and new letters appear as in-page popups because system notifications only work on desktop browsers.
-- **Anh (author/admin):** her boyfriend, who built the site. He uses `/admin` to write letters, see whether they have been read, and edit settings and on-page content for her.
+- **Anh (author/admin):** her boyfriend, who built the site. He also studies on the main page with the admin password (the same page, addressed to him). He uses `/admin` to write letters, see whether they have been read, and edit her settings and his on-page content for her.
 
 ## Product Purpose
 
@@ -36,13 +36,14 @@ This is not a generic study tool. Everything on the page is written and curated 
 **Built now:**
 - Study Mode / Pomodoro timer, instrumental music player, "Hôm nay của em" daily panel, cute reminders (water, movement), a mailbox with per-letter 4-digit PINs and optional hints, an entertainment corner with mini games (extensible through `GAMES` in `public/js/games.js`), and a settings modal.
 - Admin: write letters, view sent letters and their read status, edit her settings and the on-page content.
-- Auth: two passwords. Viewer sessions last 30 days and admin sessions last 7 days. Every page, asset, and API is blocked before login. Brute-force lockout is 8 failures per 15 minutes per IP. Letter content is rendered as plain text, never HTML, and isn't sent until its PIN is entered.
+- Auth: two passwords. Both viewer and admin sessions last 30 days. Every page, asset, and API is blocked before login. Brute-force lockout is 8 failures per 15 minutes per IP. Letter content is rendered as plain text, never HTML, and isn't sent until its PIN is entered.
 
 **Constraints:**
 - 100% free on Cloudflare Workers + D1. Don't add paid services or another backend.
 - Private, for these two people only. Always behind login, never public.
 - Current stack: plain HTML/CSS/JS in `public/` and a Worker in `src/index.js`, with no build step. This is the incumbent setup, not something the user made binding.
 
+- Studying together (two accounts side by side): the main page serves both people. The password decides who you are (admin = anh, viewer = em), and the copy speaks to whoever is viewing. Each person has their own Pomodoro and reminder settings, their own "Kế hoạch tối nay" (tick items off; unfinished items carry over to the next day, using Vietnam time), and a sticky note under the hero showing the other person live: focusing/break/paused/away with a countdown, their plan, sessions, minutes, water, and their last movement and eye-rest reminders. Either person can send a 💗 cheer (one per minute). It's quiet during focus: toast and hearts, no sound. Letters, cheer lines and the love jar go both ways: em writes hers for anh in Settings, and both write letters in the mailbox's "Viết thư" tab. Presence polls every 15s, or 60s with the tab hidden, sends a heartbeat each minute, and a beacon on leaving.
 - Chat & date tickets: two-way text and emoji chat. Either person can propose a date ticket (where, when, note), and the other can accept, reschedule or decline it. Accepted upcoming dates are pinned with a countdown, and "Đã xem" read receipts show under the last message. Her page shows a right-side drawer; admin has a "Trò chuyện" tab. Polling runs every 5s with the chat open, 15s with it closed and 60s with the tab hidden. During a focus session new messages only bump the badge and show a toast. Letters (PIN mailbox) stay separate and remain the more special channel.
 
 ## Brand Commitments

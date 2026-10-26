@@ -100,7 +100,7 @@ const Timer = {
     this.els = {
       card: $('study'), time: $('timeText'), sub: $('timeSub'), ring: $('ringFg'),
       chip: $('phaseChip'), start: $('startBtn'), dots: $('cycleDots'),
-      tabs: document.querySelectorAll('.phase-tab'), hint: $('timerHint'),
+      tabs: document.querySelectorAll('#study .phase-tab'), hint: $('timerHint'),
     };
     const r = this.els.ring.r.baseVal.value;
     this.circ = 2 * Math.PI * r;
@@ -151,7 +151,7 @@ const Timer = {
     const st = Settings.data;
     e.hint.textContent = `Pomodoro: ${st.focus} phút học • ${st.short} phút nghỉ • sau ${st.longEvery} phiên nghỉ dài ${st.long} phút 🍅`;
 
-    document.title = s.running ? `${fmtTime(left)} ${info.emoji} ${info.label}` : 'Góc Học Của Bé 💕';
+    document.title = s.running ? `${fmtTime(left)} ${info.emoji} ${info.label}` : `Góc Học Của ${Me.myName} 💕`;
     document.body.classList.toggle('is-studying', s.running && s.phase === 'focus');
   },
 };

@@ -62,6 +62,8 @@ const STRETCHES = [
 const Reminders = {
   // Thời gian học đã tích luỹ (ms) kể từ lần nhắc gần nhất — chỉ đếm khi đồng hồ đang chạy
   acc: Store.get('reminders', { water: 0, move: 0, eye: 0 }),
+  // Lần nhắc vận động / nghỉ mắt gần nhất (ms), để người kia thấy
+  last: Store.get('reminderLast', { move: null, eye: null }),
   lastTick: Date.now(),
 
   interval(type) {
@@ -70,6 +72,12 @@ const Reminders = {
   },
 
   save() { Store.set('reminders', this.acc); },
+
+  noted(kind) {
+    this.last[kind] = Date.now();
+    Store.set('reminderLast', this.last);
+    document.dispatchEvent(new CustomEvent('reminders:changed'));
+  },
 
   tick() {
     const now = Date.now();
@@ -84,9 +92,10 @@ const Reminders = {
       // Nghỉ mắt là lời nhắc nhỏ, không làm gián đoạn giờ học
       if (Settings.data.eyeRest && this.acc.eye >= this.interval('eye')) {
         this.acc.eye = 0;
+        this.noted('eye');
         Sound.play('soft');
         toast('👀 Nghỉ mắt 20 giây: nhìn ra xa khoảng 6 mét nha!', 8000);
-        Notify.send('👀 Nghỉ mắt 20-20-20', 'Nhìn ra xa 6m trong 20 giây nha bé!');
+        Notify.send('👀 Nghỉ mắt 20-20-20', `Nhìn ra xa 6m trong 20 giây nha ${Me.you}!`);
       }
     } else {
       this.acc.eye = 0;
@@ -104,6 +113,7 @@ const Reminders = {
     due.forEach((k) => { this.acc[k] = 0; });
     this.acc.eye = 0;
     this.save();
+    if (due.includes('move')) this.noted('move');
     return due;
   },
 
@@ -111,6 +121,7 @@ const Reminders = {
   showBreak(due) {
     due.forEach((k) => { this.acc[k] = 0; });
     this.save();
+    if (due.includes('move')) this.noted('move');
     Sound.play('soft');
     const title = due.includes('water') ? '💧 Tới giờ uống nước rồi!' : '🧘 Đứng dậy vận động nè!';
     Notify.send(title, 'Mở app xem lời nhắc nha 💕');
@@ -162,6 +173,7 @@ const Reminders = {
     document.getElementById('rWater').textContent = `mỗi ${s.waterEvery} phút, 1 ly nhỏ ~${s.waterMl}ml`;
     document.getElementById('rEye').textContent = `mỗi ${s.eyeEvery} phút, nhìn xa 6m trong 20 giây`;
     document.getElementById('rMove').textContent = `mỗi ${s.moveEvery} phút ngồi, 2–3 phút giãn cơ`;
+    document.getElementById('remindHint').textContent = `Lời nhắc chỉ hiện vào giờ nghỉ để không làm ${Me.you} mất tập trung (riêng nghỉ mắt là một thông báo nhỏ).`;
   },
 
   init() {

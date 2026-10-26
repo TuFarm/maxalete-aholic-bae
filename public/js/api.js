@@ -34,6 +34,15 @@ const Api = {
   messages() { return this.request('/api/messages'); },
   unlock(id, pin) { return this.request(`/api/messages/${id}/unlock`, { method: 'POST', body: { pin } }); },
   markRead(id) { return this.request(`/api/messages/${id}/read`, { method: 'POST' }); },
+  sendLetter(body) { return this.request('/api/messages', { method: 'POST', body }); },
+  sentLetters() { return this.request('/api/messages/sent'); },
+  deleteLetter(id) { return this.request(`/api/messages/${id}`, { method: 'DELETE' }); },
+  saveWritten(kind, items) { return this.request(`/api/items/${kind}`, { method: 'PUT', body: { items } }); },
+  together(body) { return this.request('/api/together', { method: 'POST', body }); },
+  planAdd(text) { return this.request('/api/plan', { method: 'POST', body: { text } }); },
+  planUpdate(id, patch) { return this.request(`/api/plan/${id}`, { method: 'PATCH', body: patch }); },
+  planDelete(id) { return this.request(`/api/plan/${id}`, { method: 'DELETE' }); },
+  cheer() { return this.request('/api/cheer', { method: 'POST' }); },
   async logout() {
     await this.request('/api/logout', { method: 'POST' }).catch(() => {});
     location.href = '/login';

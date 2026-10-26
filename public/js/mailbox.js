@@ -1,4 +1,6 @@
-/* Hộp thư: nhận lời chúc anh gửi từ trang quản trị */
+/* Hộp thư hai chiều: nhận thư người kia gửi, viết thư (có mã PIN, hẹn giờ), xem thư mình đã gửi */
+
+const LETTER_EMOJIS = ['💌', '💗', '🌷', '🧋', '🌙', '☀️', '🎉', '🍀', '🐰', '🐻', '📚'];
 
 const Mailbox = {
   messages: [],
@@ -26,11 +28,11 @@ const Mailbox = {
     const fresh = this.unread().filter((m) => !this.announced.has(m.id) && !this.dismissed.has(m.id));
     if (!fresh.length) return;
     fresh.forEach((m) => this.announced.add(m.id));
-    const his = Settings.data.hisName;
+    const peer = Me.peerName;
     Sound.play('soft');
-    Notify.send(`💌 ${his} vừa gửi thư cho em`, 'Mở app ra đọc nha!');
+    Notify.send(`💌 ${peer} vừa gửi thư cho ${Me.you}`, 'Mở app ra đọc nha!');
     if (Timer.state.running && Timer.state.phase === 'focus') {
-      toast(`💌 ${his} vừa gửi thư mới, tới giờ nghỉ mở xem nha!`, 7000);
+      toast(`💌 ${peer} vừa gửi thư mới, tới giờ nghỉ mở xem nha!`, 7000);
       fresh.forEach((m) => this.pendingIds.add(m.id));
       return;
     }
@@ -55,7 +57,7 @@ const Mailbox = {
   letterPopup(m) {
     return {
       emoji: m.emoji || '💌',
-      title: `Thư từ ${Settings.data.hisName}`,
+      title: `Thư từ ${Me.peerName}`,
       text: m.content,
       sweet: this.fmtDate(m.showAt),
       actions: [{
@@ -75,7 +77,7 @@ const Mailbox = {
     Popup.show({
       emoji: '🔒',
       title: 'Thư này có khoá nè',
-      html: `<p>Nhập mã ${Settings.data.hisName} đã cho em để mở thư nha 💕</p>`
+      html: `<p>Nhập mã ${Me.peerName} đã cho ${Me.you} để mở thư nha 💕</p>`
         + '<p class="pin-hint" id="pinHint" hidden></p>'
         + '<input id="letterPin" class="pin-input" type="password" maxlength="20" autocomplete="off">'
         + '<p class="login-error" id="pinError" role="alert"></p>',
@@ -98,7 +100,7 @@ const Mailbox = {
   async unlock(m, btn) {
     const input = document.getElementById('letterPin');
     const error = document.getElementById('pinError');
-    if (!input.value.trim()) { error.textContent = 'Em chưa nhập mã nè'; return; }
+    if (!input.value.trim()) { error.textContent = `${cap(Me.you)} chưa nhập mã nè`; return; }
     btn.disabled = true;
     try {
       const { message } = await Api.unlock(m.id, input.value.trim());
@@ -155,9 +157,148 @@ const Mailbox = {
     });
   },
 
+  // ---------- Viết thư & thư đã gửi ----------
+
+  tab: 'inbox',
+  emoji: LETTER_EMOJIS[0],
+
+  showTab(name) {
+    this.tab = name;
+    document.querySelectorAll('.mail-tabs .phase-tab').forEach((t) => {
+      const on = t.dataset.mail === name;
+      t.classList.toggle('active', on);
+      t.setAttribute('aria-selected', String(on));
+    });
+    document.querySelectorAll('[data-mail-panel]').forEach((p) => { p.hidden = p.dataset.mailPanel !== name; });
+    if (name === 'sent') this.loadSent();
+    if (name === 'compose') document.getElementById('mailContent').focus({ preventScroll: true });
+  },
+
+  newPin() { document.getElementById('mailPin').value = String(Math.floor(1000 + Math.random() * 9000)); },
+
+  initCompose() {
+    const $ = (id) => document.getElementById(id);
+    const pick = $('mailEmoji');
+    LETTER_EMOJIS.forEach((e) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'preset' + (e === this.emoji ? ' active' : '');
+      b.textContent = e;
+      b.setAttribute('aria-label', `Dán sticker ${e}`);
+      b.setAttribute('aria-pressed', String(e === this.emoji));
+      b.addEventListener('click', () => {
+        this.emoji = e;
+        pick.querySelectorAll('.preset').forEach((x) => {
+          x.classList.toggle('active', x === b);
+          x.setAttribute('aria-pressed', String(x === b));
+        });
+      });
+      pick.appendChild(b);
+    });
+    this.newPin();
+    $('mailNewPin').addEventListener('click', () => this.newPin());
+    const content = $('mailContent');
+    content.addEventListener('input', () => { $('mailCount').textContent = `${content.value.length}/2000`; });
+    document.querySelectorAll('input[name="mailWhen"]').forEach((r) => r.addEventListener('change', () => {
+      $('mailShowAt').disabled = document.querySelector('input[name="mailWhen"]:checked').value === 'now';
+    }));
+
+    $('mailCompose').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const later = document.querySelector('input[name="mailWhen"]:checked').value === 'later';
+      let showAt = null;
+      if (later) {
+        // datetime-local là giờ máy; đổi sang mili-giây UTC để server không phải đoán múi giờ
+        showAt = new Date($('mailShowAt').value).getTime();
+        if (!Number.isFinite(showAt)) { toast('Chọn thời gian hẹn gửi nha ⏰'); return; }
+      }
+      const btn = $('mailSend');
+      btn.disabled = true;
+      try {
+        const pin = $('mailPin').value.trim();
+        await Api.sendLetter({ content: content.value, emoji: this.emoji, showAt, pin, hint: $('mailHint').value });
+        content.value = '';
+        $('mailHint').value = '';
+        $('mailCount').textContent = '0/2000';
+        this.newPin();
+        Sound.play('done');
+        toast(later ? `⏰ Đã hẹn gửi lúc ${this.fmtDate(showAt)}` : `💌 Đã gửi! ${cap(Me.they)} sẽ nhận được trong vòng 1 phút`);
+        if (pin) toast(`🔑 Nhớ nhắn mã ${pin} cho ${Me.they} nha`, 8000);
+        this.showTab('sent');
+      } catch (err) {
+        toast(err.message, 6000);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  },
+
+  async loadSent() {
+    const box = document.getElementById('mailSent');
+    try {
+      const { messages } = await Api.sentLetters();
+      this.renderSent(messages);
+    } catch (err) {
+      box.replaceChildren();
+      toast(err.message);
+    }
+  },
+
+  renderSent(messages) {
+    const box = document.getElementById('mailSent');
+    if (!messages.length) {
+      const p = document.createElement('p');
+      p.className = 'hint';
+      p.textContent = `${cap(Me.you)} chưa gửi thư nào cho ${Me.they}. Viết thử một lá nha ✏️`;
+      box.replaceChildren(p);
+      return;
+    }
+    const now = Date.now();
+    const they = cap(Me.they);
+    box.replaceChildren(...messages.map((m) => {
+      const row = document.createElement('div');
+      row.className = 'sent-item' + (m.readAt ? ' read' : '');
+      const emoji = document.createElement('span');
+      emoji.className = 'letter-emoji';
+      emoji.textContent = m.emoji;
+      const body = document.createElement('div');
+      body.className = 'sent-body';
+      const text = document.createElement('p');
+      text.textContent = m.content;
+      const status = document.createElement('small');
+      status.textContent = m.readAt ? `✅ ${they} đã đọc lúc ${this.fmtDate(m.readAt)}`
+        : m.showAt > now ? `⏰ Hẹn gửi lúc ${this.fmtDate(m.showAt)}` : `📨 Đã gửi lúc ${this.fmtDate(m.showAt)} • chưa đọc`;
+      const meta = document.createElement('div');
+      meta.className = 'sent-meta';
+      const tag = (t) => { const x = document.createElement('span'); x.textContent = t; meta.appendChild(x); };
+      if (m.pin) {
+        tag(`🔑 Mã: ${m.pin}`);
+        tag(m.unlockedAt ? `🔓 ${they} mở khoá lúc ${this.fmtDate(m.unlockedAt)}` : '🔒 Chưa mở khoá');
+        if (m.hint) tag(`💡 ${m.hint}`);
+      }
+      body.append(text, status, meta);
+      const del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'btn ghost tiny-del';
+      del.textContent = '🗑';
+      del.title = 'Xoá thư';
+      del.setAttribute('aria-label', 'Xoá thư này');
+      del.addEventListener('click', async () => {
+        if (!del.dataset.confirm) { del.dataset.confirm = '1'; del.textContent = 'Xoá thật?'; return; }
+        try { await Api.deleteLetter(m.id); row.remove(); } catch (err) { toast(err.message); }
+      });
+      row.append(emoji, body, del);
+      return row;
+    }));
+  },
+
   init() {
     this.render();
     if (!Api.online) return;
+    document.getElementById('mailContent').placeholder = `Viết gì đó thật ngọt ngào cho ${Me.they}…`;
+    document.getElementById('mailHintLabel').textContent = `💡 Gợi ý cho ${Me.they} (tuỳ chọn)`;
+    document.querySelectorAll('.mail-tabs .phase-tab').forEach((t) => t.addEventListener('click', () => this.showTab(t.dataset.mail)));
+    this.initCompose();
     this.refresh();
     setInterval(() => this.refresh(), this.POLL_MS);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) this.refresh(); });

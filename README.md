@@ -9,12 +9,13 @@ Gói free gồm 100.000 request/ngày. D1 cho 5 triệu lượt đọc và 100.0
 ## Cấu trúc
 ```
 public/              # Frontend (HTML/CSS/JS thuần)
-  index.html         # Trang của em
+  index.html         # Trang học, dùng chung cho cả hai (đăng nhập bằng mật khẩu nào thì là người đó)
   admin.html         # Trang quản trị của anh (/admin)
   login.html         # Trang đăng nhập dùng chung
   js/api.js          # gọi backend (cookie đăng nhập)
   js/mailbox.js      # hộp thư, 60 giây kiểm tra thư mới một lần
   js/chat.js         # trò chuyện + phiếu hẹn (ngăn kéo bên phải / tab Trò chuyện ở /admin)
+  js/together.js     # học cùng nhau: người kia đang học tới đâu, kế hoạch tối nay, tim cổ vũ
   js/admin.js        # gửi thư, xem đã đọc chưa, sửa cài đặt và nội dung
   ...
 src/index.js         # Backend Worker: API /api/*
@@ -24,8 +25,11 @@ wrangler.toml        # Cấu hình Cloudflare
 
 ## Đăng nhập & bảo mật
 - **Cả hai trang đều cần đăng nhập.** Chưa đăng nhập thì mọi trang, file JS và API đều bị chặn, chỉ còn trang `/login`.
-  - `VIEWER_PASSWORD` (mật khẩu của em) vào được trang học. Phiên đăng nhập giữ 30 ngày.
-  - `ADMIN_PASSWORD` (mật khẩu của anh) vào được `/admin` và cả trang của em. Phiên đăng nhập giữ 7 ngày.
+  - `VIEWER_PASSWORD` (mật khẩu của em): vào trang học với tư cách **em**. Phiên đăng nhập giữ 30 ngày.
+  - `ADMIN_PASSWORD` (mật khẩu của anh): vào trang học với tư cách **anh**, và vào được `/admin`. Phiên đăng nhập giữ 30 ngày.
+- **Hai tài khoản song song.**
+  - Mỗi người có đồng hồ, kế hoạch, lời nhắc và cài đặt riêng, và thấy được người kia đang học tới đâu.
+  - Dữ liệu trong máy cũng tách theo người, nên hai người dùng chung một trình duyệt cũng không bị lẫn.
 - **Mỗi thư có mã PIN riêng.** Mã được tạo sẵn ngẫu nhiên 4 số, anh có thể sửa và thêm gợi ý.
   - Server không gửi nội dung thư cho trình duyệt trước khi mở đúng mã.
   - Mở khoá 1 lần là xem lại được mãi, kể cả trên máy khác.

@@ -49,7 +49,7 @@ const Music = {
       e.preventDefault();
       const input = $('urlInput');
       const parsed = parseYouTube(input.value);
-      if (!parsed) { this.hint('Link chưa đúng rồi, em dán link YouTube nha 🥺', true); return; }
+      if (!parsed) { this.hint(`Link chưa đúng rồi, ${Me.you} dán link YouTube nha 🥺`, true); return; }
       this.addCustom(parsed);
       this.load(parsed, true);
       input.value = '';
@@ -91,8 +91,8 @@ const Music = {
         },
         onError: (e) => {
           const msg = [101, 150, 153].includes(e.data)
-            ? 'Video này không phát được ở đây (bị chặn nhúng hoặc đã gỡ), em thử link khác nha 🥲'
-            : 'Không phát được video này, em thử link khác nha 🥲';
+            ? `Video này không phát được ở đây (bị chặn nhúng hoặc đã gỡ), ${Me.you} thử link khác nha 🥲`
+            : `Không phát được video này, ${Me.you} thử link khác nha 🥲`;
           this.hint(msg, true);
           this.playing = false;
           this.renderState();
@@ -123,7 +123,7 @@ const Music = {
   addCustom(item) {
     const key = item.list || item.id;
     if (this.presets().some((p) => (p.list || p.id) === key) || this.custom.some((c) => (c.list || c.id) === key)) return;
-    this.custom.unshift({ ...item, name: item.list ? '📀 Playlist của em' : '💿 Bài của em' });
+    this.custom.unshift({ ...item, name: item.list ? `📀 Playlist của ${Me.you}` : `💿 Bài của ${Me.you}` });
     this.custom = this.custom.slice(0, 6);
     Store.set('musicCustom', this.custom);
   },

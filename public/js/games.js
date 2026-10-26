@@ -8,7 +8,8 @@ const GAMES = [
     name: 'Hũ lời yêu',
     desc: 'Lắc hũ để nhận một lời nhắn bí mật',
     play() {
-      const pick = () => personalize(pickRandom(Content.data.note, '{his} thương {her} nhiều 💗'));
+      const pick = () => personalize(pickRandom(Content.data.note, Me.isEm ? '{his} thương {her} nhiều 💗'
+        : `${Me.peerName} chưa bỏ lời nhắn nào vào hũ, nhắc ${Me.they} viết đi 😚`));
       Popup.show({
         emoji: '🫙',
         title: 'Hũ lời yêu',

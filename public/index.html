@@ -21,9 +21,11 @@
     </a>
     <nav class="nav">
       <a href="#study">📚 Học bài</a>
+      <a href="#plan">📝 Kế hoạch</a>
       <a href="#music">🎧 Nhạc</a>
       <a href="#mailbox">📮 Thư</a>
       <a href="#games">🎀 Giải trí</a>
+      <a href="/admin" id="adminLink" hidden>💌 Hậu trường</a>
       <button class="icon-btn" id="openSettings" title="Cài đặt" aria-label="Cài đặt">⚙️</button>
     </nav>
   </header>
@@ -34,10 +36,34 @@
       <div class="hero-text">
         <p class="hero-greet" id="greeting">Chào buổi sáng, Bé ơi ☀️</p>
         <h1 class="hero-title">Hôm nay mình cùng học thật chăm nha!</h1>
-        <p class="hero-note" id="sweetNote">“Cố lên nè, anh luôn ở đây cổ vũ em đó 💌”</p>
+        <p class="hero-note" id="sweetNote"></p>
       </div>
       <div class="hero-sticker" aria-hidden="true">
-        <div class="sticker">🐰<span>💕</span></div>
+        <div class="sticker"><span class="sticker-face" id="heroAvatar">🐰</span><span class="sticker-heart">💕</span></div>
+      </div>
+    </section>
+
+    <!-- Người kia đang học tới đâu (chỉ hiện khi có server) -->
+    <section class="together" id="together" hidden aria-labelledby="peerHeading">
+      <span class="together-tape" aria-hidden="true"></span>
+      <button type="button" class="together-head" id="togetherToggle" aria-expanded="true" aria-controls="togetherBody">
+        <span class="peer-avatar" id="peerAvatar" aria-hidden="true">🐻</span>
+        <span class="peer-line">
+          <span class="peer-heading" id="peerHeading">Bên kia đang…</span>
+          <span class="peer-status" id="peerStatus">đang kết nối…</span>
+        </span>
+        <span class="peer-count" id="peerCount" hidden></span>
+        <span class="together-caret" aria-hidden="true"></span>
+      </button>
+      <div class="together-body" id="togetherBody">
+        <div class="peer-today">
+          <ul class="peer-facts" id="peerFacts"></ul>
+          <button type="button" class="btn primary cheer-btn" id="cheerBtn">💗 Gửi tim cổ vũ</button>
+        </div>
+        <div class="peer-plan-wrap">
+          <p class="peer-plan-title" id="peerPlanTitle">Kế hoạch tối nay</p>
+          <ul class="peer-plan" id="peerPlan"></ul>
+        </div>
       </div>
     </section>
 
@@ -79,6 +105,38 @@
         <p class="hint" id="timerHint"></p>
       </section>
 
+      <!-- Kế hoạch tối nay + hôm nay của mình -->
+      <section class="card plan-card" id="plan">
+        <div class="card-head">
+          <h2>📝 Kế hoạch tối nay</h2>
+          <span class="chip soft" id="planChip" hidden></span>
+        </div>
+        <ul class="plan-list" id="planList"></ul>
+        <form class="plan-form" id="planForm" autocomplete="off">
+          <label class="sr-only" for="planInput">Thêm việc cần học</label>
+          <input id="planInput" maxlength="100" placeholder="Thêm việc cần học, VD: Ôn chương 3…">
+          <button class="btn primary" type="submit">Thêm</button>
+        </form>
+        <p class="hint" id="planHint"></p>
+
+        <div class="today-head">
+          <h3 id="todayTitle">🌸 Hôm nay của em</h3>
+          <span class="chip soft" id="streakChip">🔥 0 ngày</span>
+        </div>
+        <div class="stats">
+          <div class="stat"><span class="stat-num" id="statPomos">0</span><span class="stat-label">phiên 🍅</span></div>
+          <div class="stat"><span class="stat-num" id="statMinutes">0</span><span class="stat-label">phút học</span></div>
+          <div class="stat"><span class="stat-num" id="statWater">0</span><span class="stat-label">ly nước 💧</span></div>
+        </div>
+        <div class="water">
+          <div class="water-head">
+            <span>Mục tiêu uống nước: <b id="waterGoalText">8</b> ly</span>
+            <button class="btn tiny" id="addWater">+1 ly 💧</button>
+          </div>
+          <div class="glasses" id="glasses"></div>
+        </div>
+      </section>
+
       <!-- Nhạc -->
       <section class="card music-card" id="music">
         <div class="card-head">
@@ -109,26 +167,6 @@
         <p class="hint" id="musicHint">Mẹo: dán link playlist để nghe liên tục cả buổi nha.</p>
       </section>
 
-      <!-- Hôm nay -->
-      <section class="card stats-card">
-        <div class="card-head">
-          <h2>🌸 Hôm nay của em</h2>
-          <span class="chip soft" id="streakChip">🔥 0 ngày</span>
-        </div>
-        <div class="stats">
-          <div class="stat"><span class="stat-num" id="statPomos">0</span><span class="stat-label">phiên 🍅</span></div>
-          <div class="stat"><span class="stat-num" id="statMinutes">0</span><span class="stat-label">phút học</span></div>
-          <div class="stat"><span class="stat-num" id="statWater">0</span><span class="stat-label">ly nước 💧</span></div>
-        </div>
-        <div class="water">
-          <div class="water-head">
-            <span>Mục tiêu uống nước: <b id="waterGoalText">8</b> ly</span>
-            <button class="btn tiny" id="addWater">+1 ly 💧</button>
-          </div>
-          <div class="glasses" id="glasses"></div>
-        </div>
-      </section>
-
       <!-- Nhắc nhở -->
       <section class="card remind-card">
         <div class="card-head">
@@ -140,17 +178,52 @@
           <li><span class="r-ico">🧘</span><div><b>Đứng dậy vận động</b><small id="rMove">mỗi 30 phút ngồi, 2–3 phút giãn cơ</small></div><span class="r-next" id="nMove">—</span></li>
           <li><span class="r-ico">👀</span><div><b>Nghỉ mắt 20-20-20</b><small id="rEye">mỗi 20 phút, nhìn xa 6m trong 20 giây</small></div><span class="r-next" id="nEye">—</span></li>
         </ul>
-        <p class="hint">Lời nhắc chỉ hiện vào giờ nghỉ để không làm em mất tập trung (riêng nghỉ mắt là một thông báo nhỏ).</p>
+        <p class="hint" id="remindHint">Lời nhắc chỉ hiện vào giờ nghỉ để không làm em mất tập trung (riêng nghỉ mắt là một thông báo nhỏ).</p>
       </section>
     </div>
 
     <!-- Hộp thư -->
     <section class="card mailbox" id="mailbox" hidden>
       <div class="card-head">
-        <h2>📮 Hộp thư của em</h2>
+        <h2 id="mailTitle">📮 Hộp thư của em</h2>
         <span class="chip" id="mailChip">Đã đọc hết</span>
       </div>
-      <div class="letter-list" id="letterList"></div>
+      <div class="phase-tabs mail-tabs" role="tablist" aria-label="Hộp thư">
+        <button class="phase-tab active" role="tab" aria-selected="true" data-mail="inbox">📥 Thư nhận</button>
+        <button class="phase-tab" role="tab" aria-selected="false" data-mail="compose">✏️ Viết thư</button>
+        <button class="phase-tab" role="tab" aria-selected="false" data-mail="sent">📤 Đã gửi</button>
+      </div>
+      <div class="mail-panel" data-mail-panel="inbox">
+        <div class="letter-list" id="letterList"></div>
+      </div>
+      <form class="mail-panel" data-mail-panel="compose" id="mailCompose" hidden>
+        <label class="sr-only" for="mailContent">Nội dung thư</label>
+        <textarea id="mailContent" class="letter-input" maxlength="2000" rows="6" required></textarea>
+        <div class="emoji-pick" id="mailEmoji"></div>
+        <div class="pin-row">
+          <label>🔑 Mã mở thư (bỏ trống = không khoá)
+            <span class="with-btn">
+              <input id="mailPin" maxlength="20" autocomplete="off">
+              <button type="button" class="btn ghost" id="mailNewPin" title="Tạo mã mới" aria-label="Tạo mã mới">🎲</button>
+            </span>
+          </label>
+          <label><span id="mailHintLabel">💡 Gợi ý (tuỳ chọn)</span>
+            <input id="mailHint" maxlength="100" placeholder="VD: ngày mình quen nhau (ddmm)">
+          </label>
+        </div>
+        <div class="schedule">
+          <label class="check"><input type="radio" name="mailWhen" value="now" checked> Gửi ngay</label>
+          <label class="check"><input type="radio" name="mailWhen" value="later"> Hẹn giờ gửi</label>
+          <input type="datetime-local" id="mailShowAt" disabled aria-label="Thời gian gửi">
+          <span class="mail-count" id="mailCount">0/2000</span>
+        </div>
+        <div class="modal-actions">
+          <button class="btn primary big" type="submit" id="mailSend">Gửi thư 💌</button>
+        </div>
+      </form>
+      <div class="mail-panel" data-mail-panel="sent" hidden>
+        <div class="sent-list" id="mailSent"></div>
+      </div>
     </section>
 
     <!-- Giải trí -->
@@ -162,7 +235,7 @@
       <div class="game-grid" id="gameGrid"></div>
     </section>
 
-    <footer class="footer">Làm bằng cả trái tim 💗 dành riêng cho <span id="footerName">Bé</span></footer>
+    <footer class="footer" id="footer">Làm bằng cả trái tim 💗 dành riêng cho Bé</footer>
   </main>
 
   <!-- Modal nhắc nhở / chuyển phiên -->
@@ -210,6 +283,14 @@
         </div>
         <label class="check"><input type="checkbox" name="sound"> 🔔 Phát chuông khi nhắc</label>
       </fieldset>
+      <fieldset class="written" id="writtenFields" hidden>
+        <legend id="writtenLegend">💌 Lời nhắn cho anh</legend>
+        <p class="hint" id="writtenHint">Mỗi dòng một câu. Dùng {her} và {his} để tự thay bằng tên hai đứa.</p>
+        <label><span id="writtenSweetLabel">🌸 Câu cổ vũ (hiện trên trang của anh)</span>
+          <textarea name="writtenSweet" rows="4" class="letter-input"></textarea></label>
+        <label><span id="writtenNoteLabel">🫙 Lời nhắn trong "Hũ lời yêu" của anh</span>
+          <textarea name="writtenNote" rows="4" class="letter-input"></textarea></label>
+      </fieldset>
       <div class="modal-actions">
         <button type="button" class="btn ghost" id="logoutBtn">🚪 Đăng xuất</button>
         <button type="button" class="btn ghost" id="closeSettings">Huỷ</button>
@@ -227,6 +308,7 @@
   <script src="js/music.js"></script>
   <script src="js/games.js"></script>
   <script src="js/mailbox.js"></script>
+  <script src="js/together.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/app.js"></script>
 </body>

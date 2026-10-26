@@ -1,14 +1,39 @@
-/* Tiện ích dùng chung: lưu trữ, cài đặt, thống kê, âm thanh, thông báo, toast */
+/* Tiện ích dùng chung: người dùng hiện tại, lưu trữ, cài đặt, thống kê, âm thanh, thông báo, toast */
 
+// Mình là ai: server đặt cookie `who` (anh = mật khẩu admin, em = mật khẩu thường) khi đăng nhập.
+// Chỉ để xưng hô và tách dữ liệu trong máy; quyền thật do server kiểm tra.
+const Me = {
+  who: (document.cookie.match(/(?:^|;\s*)who=(anh|em)(?:;|$)/) || [])[1] || 'em',
+  get peer() { return this.who === 'anh' ? 'em' : 'anh'; },
+  get isEm() { return this.who === 'em'; },
+  // Trang nói với người xem: "em" với em, "anh" với anh; người kia thì ngược lại
+  get you() { return this.who; },
+  get they() { return this.peer; },
+  name(who) {
+    const s = Settings.data;
+    return who === 'anh' ? (s.hisName || 'Anh') : (s.herName || 'Em');
+  },
+  get myName() { return this.name(this.who); },
+  get peerName() { return this.name(this.peer); },
+  avatar(who) { return who === 'anh' ? '🐻' : '🐰'; },
+};
+
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// Dữ liệu trong máy tách theo người (bae:em:timer, bae:anh:timer…), để hai tài khoản
+// dùng chung một trình duyệt không lẫn đồng hồ và số liệu của nhau.
+// Bản cũ (bae:timer…) trước khi có hai tài khoản là của em.
 const Store = {
+  key(k) { return `bae:${Me.who}:${k}`; },
   get(key, fallback) {
     try {
-      const v = localStorage.getItem('bae:' + key);
+      let v = localStorage.getItem(this.key(key));
+      if (v === null && Me.isEm) v = localStorage.getItem('bae:' + key);
       return v === null ? fallback : JSON.parse(v);
     } catch { return fallback; }
   },
   set(key, value) {
-    try { localStorage.setItem('bae:' + key, JSON.stringify(value)); } catch { /* bỏ qua */ }
+    try { localStorage.setItem(this.key(key), JSON.stringify(value)); } catch { /* bỏ qua */ }
   },
 };
 
@@ -56,6 +81,21 @@ const Stats = {
     const key = dateKey();
     all[key] = { pomos: 0, minutes: 0, water: 0, ...all[key] };
     all[key][field] += amount;
+    if (field === 'water') all[key].lastWater = Date.now();
+    Store.set('stats', all);
+    document.dispatchEvent(new CustomEvent('stats:changed'));
+  },
+  // Học trên máy khác trong cùng ngày: giữ số lớn hơn giữa máy này và server
+  merge(day, remote) {
+    if (day !== dateKey() || !remote) return;
+    const all = this.all();
+    const cur = { pomos: 0, minutes: 0, water: 0, ...all[day] };
+    let changed = false;
+    for (const k of ['pomos', 'minutes', 'water']) {
+      if ((remote[k] || 0) > cur[k]) { cur[k] = remote[k]; changed = true; }
+    }
+    if (!changed) return;
+    all[day] = cur;
     Store.set('stats', all);
     document.dispatchEvent(new CustomEvent('stats:changed'));
   },
@@ -132,21 +172,27 @@ function toast(message, ms = 4000) {
   }, ms);
 }
 
-// Nội dung chỉnh sửa được từ trang quản trị; đây chỉ là bản dự phòng khi không có server
+// Câu cổ vũ / hũ lời yêu do người kia viết cho mình, nhạc mẫu chung.
+// Bản dự phòng khi không có server chỉ có giọng anh viết cho em; trang của anh để trống.
+const DEFAULT_PRESETS = [
+  { name: '☁️ 4 A.M Study', src: 'TURbeWK2wwg' },
+  { name: '🌙 1 A.M Study', src: 'lTRiuFIWV54' },
+  { name: '🎹 Piano học bài', src: 'HSOtku1j600' },
+  { name: '🌧️ Tiếng mưa', src: 'mPZkdNFkNps' },
+];
+
 const Content = {
-  data: Store.get('content', null) || {
+  data: Store.get('content', null) || (Me.isEm ? {
     sweet: ['Cố lên nè, {his} luôn ở đây cổ vũ {her} đó 💌', '{his} tự hào về {her} lắm luôn 🥰', 'Mệt thì nghỉ chút, {his} thương {her} nhiều 💗'],
     note: ['Phiếu ôm 1 cái thật chặt 🤗 (có hiệu lực vĩnh viễn)', '{his} nợ {her} một ly trà sữa full topping 🧋'],
-    preset: [
-      { name: '☁️ 4 A.M Study', src: 'TURbeWK2wwg' },
-      { name: '🌙 1 A.M Study', src: 'lTRiuFIWV54' },
-      { name: '🎹 Piano học bài', src: 'HSOtku1j600' },
-      { name: '🌧️ Tiếng mưa', src: 'mPZkdNFkNps' },
-    ],
-  },
-  apply(items) {
+    preset: DEFAULT_PRESETS,
+  } : { sweet: [], note: [], preset: DEFAULT_PRESETS }),
+  // Câu mình viết cho người kia (để sửa trong Cài đặt)
+  written: Store.get('written', { sweet: [], note: [] }),
+  apply(items, written) {
     this.data = items;
     Store.set('content', items);
+    if (written) { this.written = written; Store.set('written', written); }
     document.dispatchEvent(new CustomEvent('content:changed'));
   },
 };
@@ -161,8 +207,9 @@ function pickRandom(list, fallback = '') {
   return list.length ? list[Math.floor(Math.random() * list.length)] : fallback;
 }
 
+// Trống ('') khi người kia chưa viết câu nào (chỉ xảy ra ở trang của anh)
 function sweetLine() {
-  return personalize(pickRandom(Content.data.sweet, '{his} thương {her} nhiều 💗'));
+  return personalize(pickRandom(Content.data.sweet, Me.isEm ? '{his} thương {her} nhiều 💗' : ''));
 }
 
 function fmtTime(ms) {

@@ -2,19 +2,33 @@
 
 const $ = (id) => document.getElementById(id);
 
+// Mọi chữ trên trang nói với người đang xem: em thấy "em", anh thấy "anh"
 function renderNames() {
   const s = Settings.data;
-  $('brandName').textContent = s.herName;
-  $('footerName').textContent = s.herName;
+  $('brandName').textContent = Me.myName;
+  $('footer').textContent = Me.isEm
+    ? `Làm bằng cả trái tim 💗 dành riêng cho ${s.herName}`
+    : `Làm bằng cả trái tim 💗 để học cùng ${s.herName}`;
   const h = new Date().getHours();
   const time = h < 11 ? 'Chào buổi sáng ☀️' : h < 14 ? 'Chào buổi trưa 🌤️' : h < 18 ? 'Chào buổi chiều 🌸' : h < 23 ? 'Chào buổi tối 🌙' : 'Khuya rồi đó, ngủ sớm nha 😴';
-  $('greeting').textContent = `${time} ${s.herName} ơi!`;
+  $('greeting').textContent = `${time} ${Me.myName} ơi!`;
+  $('heroAvatar').textContent = Me.avatar(Me.who);
+  $('studyingBanner').textContent = `🌷 Đang trong giờ học — tạm cất điện thoại đi nha, ${Me.they} tin ${Me.you} làm được! 💪`;
+  $('todayTitle').textContent = `🌸 Hôm nay của ${Me.you}`;
+  $('mailTitle').textContent = `📮 Hộp thư của ${Me.you}`;
+  $('adminLink').hidden = Me.isEm;
 }
 
+// Câu cổ vũ người kia viết cho mình; chưa có câu nào thì ẩn dòng này
 function rotateSweet() {
   const el = $('sweetNote');
+  const line = sweetLine();
   el.style.opacity = 0;
-  setTimeout(() => { el.textContent = `“${sweetLine()}”`; el.style.opacity = 1; }, 400);
+  setTimeout(() => {
+    el.hidden = !line;
+    el.textContent = `“${line}”`;
+    el.style.opacity = 1;
+  }, 400);
 }
 
 function renderStats() {
@@ -55,11 +69,11 @@ function onPhaseEnd({ detail }) {
     Sound.play('done');
     const mins = s[to];
     const title = to === 'long' ? 'Xuất sắc! Nghỉ dài thôi 🌙' : 'Hết giờ học rồi! 🎉';
-    Notify.send(title, `Nghỉ ${mins} phút nha ${s.herName} 💕`);
+    Notify.send(title, `Nghỉ ${mins} phút nha ${Me.myName} 💕`);
     Popup.show({
       emoji: to === 'long' ? '🏆' : '🎉',
       title,
-      html: `<p>${skipped ? '' : `Em vừa hoàn thành thêm 1 phiên 🍅. `}Giờ nghỉ <b>${mins} phút</b>${due.length ? ', trong lúc nghỉ nhớ:' : ' nhé!'}</p>`
+      html: `<p>${skipped ? '' : `${cap(Me.you)} vừa hoàn thành thêm 1 phiên 🍅. `}Giờ nghỉ <b>${mins} phút</b>${due.length ? ', trong lúc nghỉ nhớ:' : ' nhé!'}</p>`
         + Reminders.checklistHtml(due),
       sweet: sweetLine(),
       actions: Reminders.actionsFor(due, auto ? [] : [{ label: '▶ Bắt đầu nghỉ', primary: !due.includes('water'), onClick: () => Timer.start() }]),
@@ -91,7 +105,27 @@ function initSettings() {
       if (!input) continue;
       if (input.type === 'checkbox') input.checked = v; else input.value = v;
     }
+    const they = Me.they;
+    $('writtenFields').hidden = !Api.online;
+    $('writtenLegend').textContent = `💌 Lời nhắn cho ${Me.peerName}`;
+    $('writtenSweetLabel').textContent = `🌸 Câu cổ vũ (hiện trên trang của ${they})`;
+    $('writtenNoteLabel').textContent = `🫙 Lời nhắn trong "Hũ lời yêu" của ${they}`;
+    form.elements.writtenSweet.value = Content.written.sweet.join('\n');
+    form.elements.writtenNote.value = Content.written.note.join('\n');
     modal.hidden = false;
+  };
+
+  // Chỉ gửi danh sách nào thật sự đổi
+  const saveWritten = async () => {
+    const lines = (name) => form.elements[name].value.split('\n').map((l) => l.trim()).filter(Boolean);
+    const next = { sweet: lines('writtenSweet'), note: lines('writtenNote') };
+    let written = null;
+    for (const kind of ['sweet', 'note']) {
+      if (next[kind].join('\n') === Content.written[kind].join('\n')) continue;
+      ({ written } = await Api.saveWritten(kind, next[kind]));
+    }
+    if (written) Content.apply(Content.data, written);
+    return Boolean(written);
   };
   const close = () => { modal.hidden = true; };
 
@@ -117,9 +151,9 @@ function initSettings() {
     try {
       const { settings } = await Api.saveSettings(patch);
       Settings.apply(settings);
-      toast('Đã lưu cài đặt lên server 💾');
+      const wrote = await saveWritten();
+      toast(wrote ? `Đã lưu cài đặt và lời nhắn cho ${Me.peerName} 💾` : 'Đã lưu cài đặt lên server 💾');
     } catch (err) {
-      // Server không đặt PIN thì chỉ trang admin được sửa cài đặt
       toast(`Chưa lưu được lên server: ${err.message}`, 6000);
     }
   });
@@ -128,14 +162,17 @@ function initSettings() {
 // Lấy cài đặt + nội dung mới nhất từ server. Không có server thì chạy bằng dữ liệu trong máy.
 async function syncServer() {
   try {
-    const { settings, items } = await Api.bootstrap();
+    const { settings, items, written } = await Api.bootstrap();
     const firstTime = !Api.online;
     Api.online = true;
     Settings.apply(settings);
-    Content.apply(items);
-    if (firstTime) { Mailbox.init(); ChatDrawer.init(); }
+    Content.apply(items, written);
+    if (firstTime) { Mailbox.init(); ChatDrawer.init(); Together.init(); }
   } catch {
-    if (!Api.online) Mailbox.render();
+    if (!Api.online) {
+      Mailbox.render();
+      $('planHint').textContent = 'Kế hoạch cần kết nối server để lưu nha 📶';
+    }
   }
 }
 
@@ -148,11 +185,11 @@ function initNotifyButton() {
   };
   btn.addEventListener('click', async () => {
     if (Notification.permission === 'denied') {
-      toast('Thông báo đang bị chặn, em mở lại trong cài đặt trình duyệt nha 🔕', 6000);
+      toast(`Thông báo đang bị chặn, ${Me.you} mở lại trong cài đặt trình duyệt nha 🔕`, 6000);
       return;
     }
     const ok = await Notify.request();
-    toast(ok ? 'Đã bật! Khi em ở tab khác vẫn nhận được lời nhắc 💌' : 'Chưa bật được thông báo 🥺');
+    toast(ok ? `Đã bật! Khi ${Me.you} ở tab khác vẫn nhận được lời nhắc 💌` : 'Chưa bật được thông báo 🥺');
     render();
   });
   render();
@@ -163,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
   Reminders.init();
   Music.init();
   Games.init();
+  Plan.init();
   initSettings();
   initNotifyButton();
 
